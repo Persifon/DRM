@@ -23,21 +23,22 @@ class Block:
 
     def send(self, sender: str, receiver: str, quantity: c_longdouble):
         self.data = f"{sender}:{receiver}:{quantity}"
-        hash = self._calculate_hash(self.data, self.previous_hashs, self.nonce)
+        hash = self._calculate_hash(self.data, self.previous_hashs, self.nonce, self.timestamp)
         return hash
     
 
     def push_raw_data(self, raw_data:str):
         self.data = raw_data
-        hash = self._calculate_hash(self.data, self.previous_hashs, self.nonce)
+        hash = self._calculate_hash(self.data, self.previous_hashs, self.nonce, self.timestamp)
         return hash
     
 
     @staticmethod
-    def _calculate_hash(data: str, previous_hashs: list[str], nonce: int):
+    def _calculate_hash(data: str, previous_hashs: list[str], nonce: int, timestamp: datetime.datetime):
         blake = hashlib.blake2b()
         blake.update(str(data).encode('utf-8') + 
             str(previous_hashs).encode('utf-8') + 
+            str(timestamp).encode('utf-8') + 
             str(nonce).encode('utf-8'))
         return blake.hexdigest()
     
