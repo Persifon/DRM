@@ -1,6 +1,5 @@
 import random
 import json
-from copy import deepcopy
 from collections import OrderedDict
 from ctypes import c_longdouble
 
