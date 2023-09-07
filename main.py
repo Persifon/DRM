@@ -1,8 +1,9 @@
-from modules import dag, block
+from modules.dag import DAG
+from modules.block import Block
 
-Block = block.Block()
+d = DAG()
+v = Block()
 
-Dag = dag.DAG()
+b = d.send("Alice", "Bob", 12.1, v)
 
-Block.push_raw_data("абракадабра")
-Dag.add_block(Block)
+print(d.graph)

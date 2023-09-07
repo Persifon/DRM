@@ -1,58 +1,79 @@
-from pgmpy.base import DAG as d
-from block import Block
 import random
+import json
+from copy import deepcopy
+from collections import OrderedDict
+from ctypes import c_longdouble
 
-# TODO: скорее всего полностью с нуля перепишу на golang, так как не хочу зависеть от разраба pgmpy
+from modules.block import Block
+
+class DAGValidationError(Exception):
+    pass
+
 class DAG:
     def __init__(self) -> None:
-        self.dag: d = d()
-        self.genesis_block = self._create_genesis_block()
-        self.dag.add_node(node=self.genesis_block)
-        self.previous_blocks: list[Block] = [self.genesis_block]
+        self.graph = OrderedDict()
+        b = Block()
+        b.data = "Genesis Block"
+        b.calculate_hash()
+        self.graph["Genesis Block"] = b
+    
+    def reset_graph(self) -> OrderedDict:
+        self.graph = OrderedDict()
+        return self.graph
+    
+    def send(self, sender: str, receiver: str, quantity: c_longdouble, block: Block) -> str:
 
-
-    def add_block(self, new_block: Block):
-        leaves = self.dag.get_leaves() 
-        if self.previous_blocks not in leaves:
-            leaves.append(self.previous_blocks)
-        leaves = list(dict.fromkeys(leaves))
-        edge_blocks = list(dict.fromkeys(self._choose_leaves(leaves)))
-        new_block.previous_hashs = ",".join(self._get_hashs(edge_blocks))
-        print(new_block.previous_hashs)
-        for i in edge_blocks:
-            self.dag.add_edge(u=i, v=new_block)
-        self.previous_blocks = edge_blocks
-
-        if new_block in self.dag:
-            return True
-        else:
-            False
-
-
-    def _create_genesis_block(self):
-        gen = Block()
-        gen.push_raw_data("Genesis Block")
-        return gen
-
-
-    def _choose_leaves(self, leaves: list):
-        k = random.randint(1,len(leaves))
-        self.dag.update
-        return random.choices(leaves, k=k)
-
-
-    def _get_hashs(self, leaves: list[Block]) -> list:
-        hashs = []
-        for i in leaves:
-            hashs.append(i.hash)
-        return hashs
-
-
-    def get_leaves(self) -> list[Block]:
-        return self.dag.get_leaves()
-
-
-    def get_difficulty(self) -> str:
-        default = "0"*64
+        if block.hash in self.graph.keys():
+            raise KeyError('node %s already exists' % block.hash)
         
-        return ""
+        block.data = f"{sender}:{receiver}:{quantity}"
+        leaves = self.all_leaves()
+
+        leaves = list(dict.fromkeys(leaves))
+        block.previous_hashs = list(dict.fromkeys(self.__choose_leaves(leaves)))
+        block.hash = block.calculate_hash()
+
+        self.graph[block.hash] = block
+        return block.hash
+    
+    def push_raw_data(self, data: str, block: Block) -> str:
+
+        if block.hash in self.graph.keys():
+            raise KeyError('node %s already exists' % block.hash)
+        
+        block.data = data
+        leaves = self.all_leaves()
+
+        leaves = list(dict.fromkeys(leaves))
+        block.previous_hashs = list(dict.fromkeys(self.__choose_leaves(leaves)))
+        block.hash = block.calculate_hash()
+
+        self.graph[block.hash] = block
+        return block.hash
+        
+
+    def all_leaves(self) -> list[str]:
+        """ Return a list of all leaves (nodes with no downstreams) """
+        return [key for key in self.graph if not self.graph[key]]
+
+    #TODO Надо сделать jsonization и dejsonization
+    def to_json(self) -> str:
+        return json.dump(self.graph)
+    
+    def from_json(self, json_dag: str) -> bool:
+        self.reset_graph()
+        self.graph = json.loads(json_dag)
+        return True
+    
+    def block(self, hash: str) -> Block:
+        return self.graph[hash]
+
+    def size(self) -> int:
+        return len(self.graph)
+
+    def __choose_leaves(self, leaves: list[str]) -> list:
+        hashs = []
+        for i in self.graph.keys():
+            hashs.append(i)
+        k = random.randint(1,len(hashs))
+        return random.choices(hashs, k=k)
