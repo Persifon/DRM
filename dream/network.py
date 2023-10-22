@@ -4,7 +4,6 @@ from dag import DAG
 from ctypes import c_longdouble
 import random
 
-# TODO: все к хренам переписать на golang
 dag = DAG()
 app = _fastapi.FastAPI()
 
