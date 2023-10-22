@@ -1,9 +1,14 @@
-from modules.dag import DAG
-from modules.block import Block
+from dream.dag import DAG
+from dream.block import Block
+from dream.crypto import key_pair_gen
 
-d = DAG()
-v = Block()
+with open("privkey.bin", "wb") as f:
+    f.write(key_pair_gen()[1])
 
-b = d.send("Alice", "Bob", 12.1, v)
+dag = DAG()
+block = Block()
 
-print(d.graph)
+BLOCK_IN_DAG = dag.send("Alice", "Bob", 12.1, block)
+print(dag.is_block_valid(dag.graph[BLOCK_IN_DAG]))
+
+print(dag.graph)

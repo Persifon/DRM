@@ -6,7 +6,7 @@ import json
 from collections import OrderedDict
 from ctypes import c_longdouble
 
-from modules.block import Block
+from dream.block import Block
 
 class DAG:
     """Implement Directed Acyclic Graph structure"""
@@ -32,8 +32,9 @@ class DAG:
         leaves = self.all_leaves()
 
         leaves = list(dict.fromkeys(leaves))
-        block.previous_hashs = list(dict.fromkeys(self.__choose_leaves(leaves)))
+        block.previous_hashs = list(dict.fromkeys(self.__choose_leaves()))
         block.hash = block.calculate_hash()
+        block.sign = block.sign_block("privkey.bin")
 
         self.graph[block.hash] = block
         return block.hash
@@ -47,8 +48,9 @@ class DAG:
         leaves = self.all_leaves()
 
         leaves = list(dict.fromkeys(leaves))
-        block.previous_hashs = list(dict.fromkeys(self.__choose_leaves(leaves)))
+        block.previous_hashs = list(dict.fromkeys(self.__choose_leaves()))
         block.hash = block.calculate_hash()
+        block.sign = block.sign_block("privkey.bin")
 
         self.graph[block.hash] = block
         return block.hash
@@ -57,7 +59,6 @@ class DAG:
         """ Return a list of all leaves (nodes with no downstreams) """
         return [key for key in self.graph if not self.graph[key]]
 
-    #TODO Надо сделать jsonization и dejsonization
     def to_json(self) -> str:
         """Export DAG structure to json"""
         return json.dump(self.graph)
@@ -71,12 +72,18 @@ class DAG:
     def block(self, block_hash: str) -> Block:
         """This method helps you get Block object, when you only know a hash"""
         return self.graph[block_hash]
+    
+    def is_block_valid(self, block: Block):
+        """Check is block valid"""
+        if block.is_sign_valid():
+            return True
+        return False
 
     def size(self) -> int:
         """This method count a lenght of the graph object"""
         return len(self.graph)
 
-    def __choose_leaves(self, leaves: list[str]) -> list:
+    def __choose_leaves(self) -> list:
         hashs = []
         for i in self.graph.keys():
             hashs.append(i)

@@ -1,1 +1,4 @@
 pybuilder
+pycryptodome
+fastapi
+uvicorn
