@@ -8,8 +8,10 @@ from ctypes import c_longdouble
 
 from dream.block import Block
 
+
 class DAG:
     """Implement Directed Acyclic Graph structure"""
+
     def __init__(self, key) -> None:
         self.graph = self.reset_graph(key)
 
@@ -17,7 +19,7 @@ class DAG:
     def reset_graph(key) -> OrderedDict:
         """This method recreate graph with geensis block"""
         graph = OrderedDict()
-        block = Block([''])
+        block = Block([""])
         block._push("Genesis Block", key)
         graph[block.hash] = block
         return graph
@@ -27,11 +29,11 @@ class DAG:
 
         block = Block(
             list(dict.fromkeys(self.__choose_leaves())),
-            )
+        )
 
         if block.hash in self.graph.keys():
             raise KeyError(f"node {block.hash} already exists")
-        
+
         block.__push(f"{sender}:{receiver}:{quantity}", privkey)
 
         self.graph[block.hash] = block
@@ -42,18 +44,18 @@ class DAG:
 
         block = Block(
             list(dict.fromkeys(self.__choose_leaves())),
-            )
+        )
 
         if block.hash in self.graph.keys():
             raise KeyError(f"node {block.hash} already exists")
-        
+
         block.__push(data, privkey)
 
         self.graph[block.hash] = block
         return block.hash
 
     def all_leaves(self) -> list[str]:
-        """ Return a list of all leaves (nodes with no downstreams) """
+        """Return a list of all leaves (nodes with no downstreams)"""
         return [key for key in self.graph if not self.graph[key]]
 
     def to_json(self) -> str:
@@ -69,7 +71,7 @@ class DAG:
     def block(self, block_hash: str) -> Block:
         """This method helps you get Block object, when you only know a hash"""
         return self.graph[block_hash]
-    
+
     def is_block_valid(self, block: Block):
         """Check is block valid"""
         if block.is_sign_valid():
@@ -84,5 +86,5 @@ class DAG:
         hashs = []
         for i in self.graph.keys():
             hashs.append(i)
-        k = random.randint(1,len(hashs))
+        k = random.randint(1, len(hashs))
         return random.choices(hashs, k=k)
