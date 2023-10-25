@@ -10,47 +10,44 @@ from dream.block import Block
 
 class DAG:
     """Implement Directed Acyclic Graph structure"""
-    def __init__(self) -> None:
-        self.graph = self.reset_graph()
+    def __init__(self, key) -> None:
+        self.graph = self.reset_graph(key)
 
     @staticmethod
-    def reset_graph() -> OrderedDict:
+    def reset_graph(key) -> OrderedDict:
         """This method recreate graph with geensis block"""
         graph = OrderedDict()
-        block = Block()
-        block.data = "Genesis Block"
-        block.calculate_hash()
-        graph["Genesis Block"] = block
+        block = Block([''])
+        block._push("Genesis Block", key)
+        graph[block.hash] = block
         return graph
 
-    def send(self, sender: str, receiver: str, quantity: c_longdouble, block: Block) -> str:
+    def send(self, sender: str, receiver: str, quantity: c_longdouble, privkey) -> str:
         """This function 'send' some DRM currency to receiver"""
+
+        block = Block(
+            list(dict.fromkeys(self.__choose_leaves())),
+            )
+
         if block.hash in self.graph.keys():
             raise KeyError(f"node {block.hash} already exists")
-
-        block.data = f"{sender}:{receiver}:{quantity}"
-        leaves = self.all_leaves()
-
-        leaves = list(dict.fromkeys(leaves))
-        block.previous_hashs = list(dict.fromkeys(self.__choose_leaves()))
-        block.hash = block.calculate_hash()
-        block.sign = block.sign_block("privkey.bin")
+        
+        block.__push(f"{sender}:{receiver}:{quantity}", privkey)
 
         self.graph[block.hash] = block
         return block.hash
 
-    def push_raw_data(self, data: str, block: Block) -> str:
-        """This function push raw string data to BlockDAG"""
+    def push_raw_data(self, data: str, privkey: str) -> str:
+        """This function 'send' some DRM currency to receiver"""
+
+        block = Block(
+            list(dict.fromkeys(self.__choose_leaves())),
+            )
+
         if block.hash in self.graph.keys():
             raise KeyError(f"node {block.hash} already exists")
-
-        block.data = data
-        leaves = self.all_leaves()
-
-        leaves = list(dict.fromkeys(leaves))
-        block.previous_hashs = list(dict.fromkeys(self.__choose_leaves()))
-        block.hash = block.calculate_hash()
-        block.sign = block.sign_block("privkey.bin")
+        
+        block.__push(data, privkey)
 
         self.graph[block.hash] = block
         return block.hash

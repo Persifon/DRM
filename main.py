@@ -3,12 +3,11 @@ from dream.block import Block
 from dream.crypto import key_pair_gen
 
 with open("privkey.bin", "wb") as f:
-    f.write(key_pair_gen()[1])
+    key = key_pair_gen()
 
-dag = DAG()
-block = Block()
+dag = DAG(key)
 
-BLOCK_IN_DAG = dag.send("Alice", "Bob", 12.1, block)
+BLOCK_IN_DAG = dag.send("Alice", "Bob", 12.1, key)
 print(dag.is_block_valid(dag.graph[BLOCK_IN_DAG]))
 
 print(dag.graph)
