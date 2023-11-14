@@ -1,11 +1,15 @@
 """Crypto module for acting with needed cryptography functions"""
-from Crypto.PublicKey import ECC
+import oqs
 
 
-def key_pair_gen():
-    """Function that geenrates key pair"""
+def key_pair_gen(sigalg = "Dilithium5") -> dict[str, bytes]:
+    """Function that generate key pair"""
 
-    key = ECC.generate(curve="NIST P-521")
-    # encrypted_key = key.export_key(protection='PBKDF2WithHMAC-SHA1AndDES-EDE3-CBC',
-    #                                format='DER')
-    return key
+    with oqs.Signature(sigalg) as client:
+        pk = client.generate_keypair()
+        sk = client.export_secret_key()
+        
+    return {
+        'pk': pk,
+        'sk': sk
+    }

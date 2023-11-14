@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "drm"
+version = "0.1.0"
+description = ""
+authors = ["Zevobla <ghost-brake-your-home@protonmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.104.1"
+uvicorn = "^0.24.0.post1"
+h = "^0.99"
+liboqs-python = {url = "https://github.com/open-quantum-safe/liboqs-python/archive/refs/heads/main.tar.gz"}
+
+[tool.poetry.group.dev.dependencies]
+python = "^3.11"
+fastapi = "^0.104.1"
+uvicorn = "^0.24.0.post1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

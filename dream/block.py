@@ -4,11 +4,11 @@ to storing information about transaction/raw data
 """
 
 import datetime
+from hashlib import new
 
-from Crypto.Hash import SHA256
-from Crypto.PublicKey import ECC
-from Crypto.Signature import DSS
+import oqs
 
+kemalg = "Kyber1024"
 
 class Block:
     """Class that realize block structurre"""
@@ -18,31 +18,25 @@ class Block:
         self.previous_hashs = previous_hashs
         self.timestamp: datetime.datetime = datetime.datetime.now()
         self.nonce: int = 0
-        self.hash: str = ""
-        self.poster: ECC.EccKey
+        self.hash: bytes = bytes()
+        self.poster: bytes
         self.sign: bytes = b""
         self.difficulty = 0
 
-    def _push(self, data: str, key: ECC.EccKey):
+    def _push(self, data: str, key: dict[str, bytes]):
+        """Push data"""
+        
         self.data = data
-
+        self.poster = key['pk']
         self._calculate_hash(key)
         self._sign_block(key)
+        
         return self.hash
 
-    def _pushrd(self, data: str, privkey: str):
-        """This function send some quantity to receiver"""
-
-        return self._push(data, privkey)
-
-    def _calculate_hash(self, key) -> str:
+    def _calculate_hash(self) -> str:
         """Method that calculate hash of block"""
 
-        # with open(privkey, encoding='utf-8') as pk:
-        #     key = ECC.import_key(pk.read()) #read private key
-        self.poster = key.public_key()
-
-        sha = SHA256.new()
+        sha = new('sha512')
         sha.update(
             str(self.data).encode("utf-8")
             + str(self.previous_hashs).encode("utf-8")
@@ -50,47 +44,34 @@ class Block:
             + str(self.poster).encode("utf-8")
             + str(self.nonce).encode("utf-8")
         )
-        self.hash = sha.hexdigest()
+        self.hash = sha.hexdigest().encode()
+        
         return self.hash
 
-    def _sign_block(self, key: ECC.EccKey) -> bytes:
+    def _sign_block(self, key) -> bytes:
         """Sign a block with private key"""
 
-        if self.hash != "":
-            signer = DSS.new(key, "fips-186-3")
-            self.sign = signer.sign(self.hash)
-            return self.sign
-        else:
-            self._calculate_hash()
-            return self._sign_block()
+        signer = oqs.Signature("Dilithium5", key['sk'])
+        self.sign = signer.sign(self.hash)
+        
+        return self.sign
 
     def _is_sign_valid(self):
         """Check is sign valid"""
 
-        key = ECC.import_key(self.poster)
-        block_hash = self._calculate_hash()
-        verifier = DSS.new(key, "fips-186-3")
-        try:
-            verifier.verify(block_hash, self.sign)
-            return True
-        except ValueError:
-            return False
+        with oqs.Signature("Dilithium5") as verifier:
+            is_valid = verifier.verify(self.hash, self.sign, self.poster)
+        
+        return is_valid
 
     def mine(self):
+        """Mine block"""
+
         while self.hash[: self.difficulty - 1] != ("0" * self.difficulty):
             self._calculate_hash
             self.nonce += 1
 
-    def __repr__(self):
-        return (
-            self.data,
-            self.hash,
-            self.nonce,
-            self.poster,
-            self.previous_hashs,
-            self.sign,
-            self.timestamp,
-        )
-
+        return self.nonce
+    
     def __str__(self):
         return f"{self.poster}: {self.data}, {self.hash}, {self.sign}, {self.timestamp}"
