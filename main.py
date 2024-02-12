@@ -5,9 +5,11 @@ with open("privkey.bin", "wb") as f:
     key = key_pair_gen()
     f.write(key['sk'])
 
-dag = DAG(key)
+dag = DAG()
+
+dag.genesis_block(key)
 
 BLOCK_IN_DAG = dag.send("Alice", "Bob", 12.1, key)
-print(dag.is_block_valid(dag.graph[BLOCK_IN_DAG], key))
 
-print(dag.graph)
+if dag.is_block_valid(dag.graph[BLOCK_IN_DAG]):
+    print(dag.graph)

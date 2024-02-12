@@ -1,4 +1,0 @@
-pybuilder
-pycryptodome
-fastapi
-uvicorn

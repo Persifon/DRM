@@ -27,7 +27,16 @@ class DAG:
             raise KeyError(f"Block {block.hash} already in DAG")
         self.graph[block.hash] = block
 
-        return block.hash.decode('utf-8')
+        return block.hash
+
+    def genesis_block(self, key: dict[str, bytes]):
+        """Generate genesis block"""
+
+        block = Block([])
+        block._push('Genesis block', key)
+        self.graph[block.hash] = block
+
+        return block.hash
 
     def push_raw_data(self, data: str, key: dict[str, bytes]) -> str:
         """This function 'send' some DRM currency to receiver"""

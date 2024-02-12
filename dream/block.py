@@ -3,12 +3,10 @@ This moodule realise Block class and his method
 to storing information about transaction/raw data
 """
 
-import datetime
+from datetime import datetime
 from hashlib import new
 
-import oqs
-
-kemalg = "Kyber1024"
+from oqs import Signature
 
 class Block:
     """Class that realize block structurre"""
@@ -16,24 +14,24 @@ class Block:
     def __init__(self, previous_hashs: list[str]) -> None:
         self.data: str
         self.previous_hashs = previous_hashs
-        self.timestamp: datetime.datetime = datetime.datetime.now()
+        self.timestamp: datetime = datetime.now()
         self.nonce: int = 0
         self.hash: bytes = bytes()
         self.poster: bytes
         self.sign: bytes = b""
         self.difficulty = 0
 
-    def _push(self, data: str, key: dict[str, bytes]):
+    def _push(self, data: str, key: dict[str, bytes]) -> bytes:
         """Push data"""
         
         self.data = data
         self.poster = key['pk']
-        self._calculate_hash(key)
+        self._calculate_hash()
         self._sign_block(key)
         
         return self.hash
 
-    def _calculate_hash(self) -> str:
+    def _calculate_hash(self) -> bytes:
         """Method that calculate hash of block"""
 
         sha = new('sha512')
@@ -51,15 +49,15 @@ class Block:
     def _sign_block(self, key) -> bytes:
         """Sign a block with private key"""
 
-        signer = oqs.Signature("Dilithium5", key['sk'])
+        signer = Signature("Dilithium5", key['sk'])
         self.sign = signer.sign(self.hash)
         
         return self.sign
 
-    def _is_sign_valid(self):
+    def _is_sign_valid(self) -> bool:
         """Check is sign valid"""
 
-        with oqs.Signature("Dilithium5") as verifier:
+        with Signature("Dilithium5") as verifier:
             is_valid = verifier.verify(self.hash, self.sign, self.poster)
         
         return is_valid
