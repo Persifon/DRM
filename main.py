@@ -1,3 +1,4 @@
+"""DRM Wallet module"""
 from dream.dag import DAG
 from dream.crypto import key_pair_gen
 
